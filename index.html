@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R07 - Performance Tracker | LRK Institute</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --red: #ff0000; --dark: #050505; --grey: #111; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; background: var(--dark); color: white; margin: 0; padding: 20px;
+            background-image: radial-gradient(circle at 50% 50%, #1a0000 0%, #050505 100%);
+        }
+
+        /* Branding Background */
+        body::before {
+            content: "R07"; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 20vw; font-weight: 900; color: rgba(255, 0, 0, 0.03); z-index: -1; pointer-events: none;
+        }
+
+        .tracker-container { max-width: 1100px; margin: auto; }
+
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-family: 'Orbitron', sans-serif; color: var(--red); letter-spacing: 5px; text-shadow: 0 0 20px var(--red); margin: 0; }
+        .header p { color: #888; letter-spacing: 2px; text-transform: uppercase; font-size: 0.8rem; }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--grey); border: 1px solid var(--red); padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 0 15px rgba(255,0,0,0.1); }
+        .stat-card h3 { margin: 0; font-size: 2rem; color: var(--red); font-family: 'Orbitron'; }
+        .stat-card p { margin: 5px 0 0; font-size: 0.8rem; color: #aaa; }
+
+        /* Search & Controls */
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; }
+        input { 
+            flex: 1; padding: 12px 20px; background: #000; border: 1px solid #333; 
+            border-radius: 10px; color: white; font-family: inherit;
+        }
+        input:focus { border-color: var(--red); outline: none; box-shadow: 0 0 10px rgba(255,0,0,0.2); }
+        
+        .clear-btn { 
+            background: var(--red); color: white; border: none; padding: 0 20px; 
+            border-radius: 10px; cursor: pointer; font-weight: bold; font-family: 'Orbitron'; font-size: 0.7rem;
+        }
+
+        /* Table Design */
+        .table-wrap { background: rgba(10, 10, 10, 0.9); border-radius: 15px; border: 1px solid #222; overflow: hidden; backdrop-filter: blur(10px); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #1a0000; color: var(--red); padding: 18px; font-family: 'Orbitron'; font-size: 0.75rem; letter-spacing: 1px; }
+        td { padding: 15px 18px; border-bottom: 1px solid #222; font-size: 0.9rem; }
+        tr:hover { background: rgba(255, 0, 0, 0.05); }
+
+        .score-badge { 
+            background: var(--red); color: white; padding: 4px 10px; 
+            border-radius: 6px; font-weight: bold; font-family: 'Orbitron'; font-size: 0.8rem;
+        }
+
+        .no-data { text-align: center; padding: 50px; color: #555; font-style: italic; }
+
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; }
+            th:nth-child(4), td:nth-child(4) { display: none; } /* Hide system info on mobile */
+        }
+    </style>
+</head>
+<body>
+
+<div class="tracker-container">
+    <div class="header">
+        <p>LRK Computer Institute | Mihinpurwa</p>
+        <h1>STUDENT TRACKER</h1>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3 id="totalTests">0</h3>
+            <p>Total Exams Attempted</p>
+        </div>
+        <div class="stat-card">
+            <h3 id="avgScore">0%</h3>
+            <p>Average Accuracy</p>
+        </div>
+        <div class="stat-card">
+            <h3 id="topScore">0</h3>
+            <p>Highest Score Today</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="searchInput" onkeyup="filterData()" placeholder="Search by Student Name or Phone Number...">
+        <button class="clear-btn" onclick="clearLogs()">WIPE ALL LOGS</button>
+    </div>
+
+    <div class="table-wrap">
+        <table id="logTable">
+            <thead>
+                <tr>
+                    <th>DATE & TIME</th>
+                    <th>STUDENT NAME</th>
+                    <th>MOBILE NO.</th>
+                    <th>SCORE (RAW)</th>
+                    <th>PERCENTAGE</th>
+                </tr>
+            </thead>
+            <tbody id="logBody">
+                </tbody>
+        </table>
+        <div id="noData" class="no-data" style="display: none;">NO MISSION RECORDS FOUND</div>
+    </div>
+</div>
+
+<script>
+    function loadLogs() {
+        const logs = JSON.parse(localStorage.getItem('ccc_logs')) || [];
+        const body = document.getElementById('logBody');
+        const noData = document.getElementById('noData');
+        
+        if (logs.length === 0) {
+            body.innerHTML = "";
+            noData.style.display = "block";
+            updateStats(0, 0, 0);
+            return;
+        }
+
+        noData.style.display = "none";
+        let html = "";
+        let totalScoreSum = 0;
+        let high = 0;
+
+        // Sort by newest first
+        [...logs].reverse().forEach(log => {
+            // Extract numbers from score string like "45/100"
+            const parts = log.scoreStr ? log.scoreStr.split('/') : [0, 1];
+            const obtained = parseInt(parts[0]);
+            const total = parseInt(parts[1]);
+            const percent = Math.round((obtained / total) * 100) || 0;
+
+            totalScoreSum += percent;
+            if(obtained > high) high = obtained;
+
+            html += `
+                <tr>
+                    <td style="color:#888; font-size:0.8rem;">${log.date}</td>
+                    <td style="font-weight:bold; letter-spacing:0.5px;">${log.name.toUpperCase()}</td>
+                    <td style="color:var(--red);">${log.phone}</td>
+                    <td><span class="score-badge">${log.scoreStr}</span></td>
+                    <td style="font-weight:bold; color:${percent >= 50 ? '#00ff00' : '#ff4444'}">${percent}%</td>
+                </tr>
+            `;
+        });
+
+        body.innerHTML = html;
+        updateStats(logs.length, Math.round(totalScoreSum / logs.length), high);
+    }
+
+    function updateStats(total, avg, high) {
+        document.getElementById('totalTests').innerText = total;
+        document.getElementById('avgScore').innerText = avg + "%";
+        document.getElementById('topScore').innerText = high;
+    }
+
+    function filterData() {
+        const input = document.getElementById('searchInput').value.toUpperCase();
+        const rows = document.getElementById('logBody').getElementsByTagName('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const name = rows[i].getElementsByTagName('td')[1];
+            const phone = rows[i].getElementsByTagName('td')[2];
+            if (name || phone) {
+                const txtValue = (name.textContent || name.innerText) + (phone.textContent || phone.innerText);
+                rows[i].style.display = txtValue.toUpperCase().indexOf(input) > -1 ? "" : "none";
+            }
+        }
+    }
+
+    function clearLogs() {
+        if (confirm("DANGER: Are you sure you want to delete ALL student records? This cannot be undone.")) {
+            localStorage.removeItem('ccc_logs');
+            loadLogs();
+        }
+    }
+
+    // Load data on start
+    window.onload = loadLogs;
+</script>
+
+</body>
+</html>
