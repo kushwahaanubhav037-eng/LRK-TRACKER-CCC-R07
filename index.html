@@ -3,195 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LRK | Student Performance Tracker</title>
+    <title>Student Tracker | LRK Institute</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
             --edu-blue: #1a73e8; --edu-dark: #0d47a1; --bg: #f0f4f8; 
-            --success: #1e8e3e; --danger: #d93025; --white: #ffffff;
+            --success: #2e7d32; --danger: #d32f2f; 
         }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; }
         
-        .container { max-width: 1100px; margin: auto; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Header & Stats */
         .header { 
-            background: var(--white); padding: 25px; border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 5px solid var(--edu-blue);
-        }
-        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-box { 
-            background: var(--white); padding: 20px; border-radius: 15px; 
-            text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-        .stat-box h3 { margin: 0; font-size: 24px; color: var(--edu-dark); }
-        .stat-box p { margin: 5px 0 0; font-size: 12px; color: #666; font-weight: 600; }
-
-        /* Table Design */
-        .table-card { 
-            background: var(--white); border-radius: 20px; overflow: hidden; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-        }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f8f9fa; padding: 18px; text-align: left; font-size: 13px; color: #5f6368; border-bottom: 2px solid #eee; }
-        td { padding: 15px 18px; border-bottom: 1px solid #f1f1f1; font-size: 14px; color: #333; }
-        tr:hover { background: #fcfdfe; }
-
-        /* Badges */
-        .badge { padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; }
-        .grade-S { background: #e6f4ea; color: var(--success); }
-        .grade-A { background: #e8f0fe; color: var(--edu-blue); }
-        .grade-FAIL { background: #fce8e6; color: var(--danger); }
-
-        .btn-del { 
-            background: #fff0f0; color: var(--danger); border: none; padding: 8px 12px; 
-            border-radius: 8px; cursor: pointer; transition: 0.3s;
-        }
-        .btn-del:hover { background: var(--danger); color: white; }
-
-        .refresh-btn { 
-            background: var(--edu-blue); color: white; border: none; padding: 10px 20px; 
-            border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;
+            background: white; padding: 20px; border-radius: 15px; text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-bottom: 5px solid var(--edu-blue);
+            margin-bottom: 20px;
         }
 
-        @media (max-width: 600px) {
-            .stats-bar { grid-template-columns: 1fr; }
-            .header { flex-direction: column; gap: 15px; text-align: center; }
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-item { background: white; padding: 15px; border-radius: 10px; flex: 1; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .card-table { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; color: var(--edu-dark); padding: 15px; text-align: left; border-bottom: 2px solid #eee; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; font-size: 14px; }
+
+        .badge { padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        .grade-PENDING { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+        .grade-S { background: #e8f5e9; color: #2e7d32; }
+        .grade-FAIL { background: #ffebee; color: #c62828; }
+
+        .action-btns { display: flex; gap: 10px; }
+        .btn-view { color: var(--edu-blue); cursor: pointer; border: none; background: none; font-size: 18px; }
+        .btn-del { color: var(--danger); cursor: pointer; border: none; background: none; font-size: 18px; }
+
+        /* Profile Modal Styling */
+        #profileModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;
         }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px;
+            position: relative; animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .profile-header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .profile-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .profile-row b { color: var(--edu-dark); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
     </style>
 </head>
 <body>
 
+<div id="profileModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeProfile()">&times;</span>
+        <div class="profile-header">
+            <i class="fas fa-user-circle" style="font-size: 60px; color: var(--edu-blue);"></i>
+            <h2 id="pName" style="margin: 10px 0 0;">Student Name</h2>
+            <p id="pStatus" style="margin: 5px 0; font-size: 13px; font-weight: bold;"></p>
+        </div>
+        <div class="profile-body">
+            <div class="profile-row"><span>Mobile:</span> <b id="pMobile">-</b></div>
+            <div class="profile-row"><span>Exam Score:</span> <b id="pScore">-</b></div>
+            <div class="profile-row"><span>Attempt Time:</span> <b id="pTime">-</b></div>
+            <div class="profile-row"><span>Level:</span> <b id="pLevel">-</b></div>
+        </div>
+        <button onclick="closeProfile()" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 10px; border: none; background: var(--edu-blue); color: white; font-weight: bold; cursor: pointer;">CLOSE PROFILE</button>
+    </div>
+</div>
+
 <div class="container">
     <div class="header">
-        <div>
-            <h2 style="margin:0; color:var(--edu-dark);">STUDENT TRACKER</h2>
-            <p style="margin:5px 0 0; font-size:12px; color:#666;">LRK Computer Institute - Exam Logs</p>
-        </div>
-        <button class="refresh-btn" onclick="loadLogs()">
-            <i class="fas fa-sync-alt"></i> REFRESH DATA
-        </button>
+        <h2 style="margin:0; color:var(--edu-dark)">LRK STUDENT PERFORMANCE TRACKER</h2>
+        <p style="margin:5px 0 0; color:#666;">Profile View & Management System</p>
     </div>
 
     <div class="stats-bar">
-        <div class="stat-box">
-            <h3 id="totalStudents">0</h3>
-            <p>TOTAL ATTEMPTS</p>
+        <div class="stat-item">
+            <h3 id="countExams">0</h3>
+            <p style="margin:0; font-size:12px; font-weight:bold;">TOTAL ATTEMPTS</p>
         </div>
-        <div class="stat-box">
-            <h3 id="avgScore">0%</h3>
-            <p>AVG. PERFORMANCE</p>
-        </div>
-        <div class="stat-box">
-            <h3 id="passRate">0</h3>
-            <p>EXCELLENT (S GRADE)</p>
+        <div class="stat-item">
+            <h3 id="countStudents">0</h3>
+            <p style="margin:0; font-size:12px; font-weight:bold;">UNIQUE STUDENTS</p>
         </div>
     </div>
 
-    <div class="table-card">
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>DATE & TIME</th>
-                        <th>STUDENT NAME</th>
-                        <th>MOBILE</th>
-                        <th>SCORE</th>
-                        <th>GRADE</th>
-                        <th>ACTION</th>
-                    </tr>
-                </thead>
-                <tbody id="trackerBody">
-                    <tr><td colspan="6" style="text-align:center; padding:50px; color:#999;">Fetching logs from cloud...</td></tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="card-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>DATE/TIME</th>
+                    <th>STUDENT NAME</th>
+                    <th>SCORE</th>
+                    <th>STATUS</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="trackerBody">
+                <tr><td colspan="5" style="text-align:center; padding:30px;">Cloud se data aa raha hai...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypq0a5mRG2pFLs63pyvoxgLz-9w4wPrLbCWI8dVL1VPqT4sX5Obh7f3dq0htjT3oDT/exec";
+    let logsData = [];
 
     async function loadLogs() {
         try {
             const res = await fetch(SCRIPT_URL);
             const db = await res.json();
-            const logs = db.logs && db.logs.length > 1 ? db.logs.slice(1) : [];
-            renderTable(logs);
-        } catch (e) {
-            document.getElementById('trackerBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Error loading data!</td></tr>';
-        }
+            logsData = db.logs ? db.logs.slice(1) : []; 
+            renderTable(logsData);
+        } catch (e) { console.error("Fetch failed"); }
     }
 
-    function renderTable(data) {
+    function renderTable(logs) {
         const tbody = document.getElementById('trackerBody');
         tbody.innerHTML = "";
+        document.getElementById('countExams').innerText = logs.length;
+        document.getElementById('countStudents').innerText = [...new Set(logs.map(l => l[2]))].length;
 
-        if(data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">No records found.</td></tr>';
-            return;
-        }
-
-        // Stats Calculation
-        document.getElementById('totalStudents').innerText = data.length;
-        const sGrades = data.filter(r => r[4].includes('S')).length;
-        document.getElementById('passRate').innerText = sGrades;
-
-        // Render Rows (Latest first)
-        [...data].reverse().forEach(row => {
+        logs.reverse().forEach((row, index) => {
             const tr = document.createElement('tr');
+            const status = row[4] || "";
+            const gradeClass = status.includes("STARTED") ? 'grade-PENDING' : (status.includes("FAIL") ? 'grade-FAIL' : 'grade-S');
             
-            // Grade Color Logic
-            let gradeClass = 'grade-A';
-            if(row[4].includes('S')) gradeClass = 'grade-S';
-            if(row[4].includes('FAIL')) gradeClass = 'grade-FAIL';
-
             tr.innerHTML = `
-                <td style="font-size:12px; color:#666;">${row[0]}</td>
+                <td style="color:#888; font-size:12px;">${row[0]}</td>
                 <td style="font-weight:bold;">${row[1]}</td>
-                <td>${row[2]}</td>
-                <td><b style="color:var(--edu-blue)">${row[3]}</b></td>
+                <td>${row[3]}</td>
                 <td><span class="badge ${gradeClass}">${row[4]}</span></td>
                 <td>
-                    <button class="btn-del" onclick="deleteLog('${row[0]}')">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="action-btns">
+                        <button class="btn-view" onclick="viewProfile('${row[0]}')" title="View Profile">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-del" onclick="deleteLog('${row[0]}')" title="Delete Record">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    async function deleteLog(id) {
-        if(!confirm("Kya aap is result record ko hamesha ke liye delete karna chahte hain?")) return;
+    // Naya Feature: Profile dekhne ke liye
+    function viewProfile(id) {
+        const student = logsData.find(l => l[0] === id);
+        if(!student) return;
 
-        const payload = {
-            type: 'logs',
-            action: 'delete',
-            row: [id.toString()] // Timestamp unique ID ki tarah kaam karega
-        };
-
-        try {
-            // UI se turant hatane ke liye (Optimistic UI)
-            loadLogs(); 
-
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(payload)
-            });
-            
-            alert("Record deleted from cloud!");
-            loadLogs();
-        } catch (e) {
-            alert("Delete failed!");
-        }
+        document.getElementById('pName').innerText = student[1];
+        document.getElementById('pMobile').innerText = student[2];
+        document.getElementById('pScore').innerText = student[3];
+        document.getElementById('pStatus').innerText = student[4];
+        document.getElementById('pTime').innerText = student[0];
+        document.getElementById('pLevel').innerText = student[5] || "Level 1";
+        
+        document.getElementById('profileModal').style.display = 'flex';
     }
 
-    // Auto load on start
+    function closeProfile() {
+        document.getElementById('profileModal').style.display = 'none';
+    }
+
+    async function deleteLog(id) {
+        if(!confirm("Kya aap is student ka record hamesha ke liye delete karna chahte hain?")) return;
+        const payload = { type: 'logs', action: 'delete', row: [id.toString()] };
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Record Deleted!");
+            loadLogs(); 
+        } catch (e) { alert("Delete failed!"); }
+    }
+
     window.onload = loadLogs;
 </script>
 </body>
